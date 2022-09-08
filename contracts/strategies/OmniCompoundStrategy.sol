@@ -21,6 +21,8 @@ contract OmniCompoundStrategy {
 
     ICEth private CEth;
 
+    // recive function is not defined in the interface, but is required to receive ETH.
+
     constructor(address _CEth) {
         CEth = ICEth(_CEth);
     }
@@ -33,23 +35,30 @@ contract OmniCompoundStrategy {
     // Compound funds acquired from interest on Compound
     function compound() external {
         CEth.accrueInterest();
-        OmniCompoundStrategy(address(this)).unlock();
+        // _unlock is intenal, so, already only can be called by self
+        // OmniCompoundStrategy(address(this)).unlock();
+        _unlock(balance());
         deposit();
     }
 
     // Allow invocation only by self for compounding
-    function unlock() external {
-        require(msg.sender == address(this), "INSUFFICIENT_PRIVILEGES");
-        _unlock(balance());
-    }
+    // function unlock() external {
+    //     require(msg.sender == address(this), "INSUFFICIENT_PRIVILEGES");
+    //     _unlock(balance());
+    // }
 
     // Calculate total balance
     function balance() public view returns (uint256) {
         return address(this).balance + CEth.balanceOfUnderlying(address(this));
     }
 
-    function _unlock(uint256 amount) public {
+    // this function could be marked as internal in orden to only be called from unlock function
+    function _unlock(uint256 amount) internal {
         if (amount > address(this).balance)
+            // this arithmetic is too complex
+            // can be replaced by ´CEth.redeem(CEth.balanceOf(address(this))´
+            // brecause the amount = balance + Underlyinge, and (amount - balance) * CEth.balance / Underlying = CEth.balance
+            // is that what is expected to redeem ?
             CEth.redeem(
                 (amount - address(this).balance)
                     .safe(
@@ -65,7 +74,11 @@ contract OmniCompoundStrategy {
         _send(payable(msg.sender), amount);
     }
 
+    // this function send Ether to arbitrary destinations
+    // how ever address that call compound function will recive the Ether
     function _send(address payable target, uint256 amount) internal {
-        target.transfer(amount);
+        // call is the recommended way of sending ETH to other contract
+        (bool sent, ) = target.call{value: amount}("");
+        require(sent, "Failed to send Ether");
     }
 }

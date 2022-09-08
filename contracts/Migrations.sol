@@ -1,9 +1,19 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+
+/** solc version is too old and too ambiguous */
+// pragma solidity >=0.4.22 <0.9.0;
+pragma solidity ^0.8.0;
 
 contract Migrations {
-  address public owner = msg.sender;
-  uint public last_completed_migration;
+  // owner should mark as immutable and inicialize in constructor
+  address public immutable owner;
+  // recomended follow the naming convention
+  /** https://docs.soliditylang.org/en/v0.4.25/style-guide.html#local-and-state-variable-names */
+  uint public lastCompletedMigration;
+
+  constructor() {
+    owner = msg.sender;
+  }
 
   modifier restricted() {
     require(
@@ -13,7 +23,8 @@ contract Migrations {
     _;
   }
 
-  function setCompleted(uint completed) public restricted {
-    last_completed_migration = completed;
+  /** this function should be declared external */
+  function setCompleted(uint completed) external restricted {
+    lastCompletedMigration = completed;
   }
 }

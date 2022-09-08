@@ -7,8 +7,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 // The Omni Token for the rewards distributed by OmniChef
 contract Omni is ERC20, Ownable {
-    uint256 internal constant INITIAL_SUPPLY = 10000000;
-    address public emergencyAdmin;
+    // this number too long, can cause confusion in the future
+    // https://docs.soliditylang.org/en/latest/units-and-global-variables.html#ether-units
+    uint256 internal constant INITIAL_SUPPLY = 1e7;
+    // could be marked as immutable
+    address public immutable emergencyAdmin;
 
     constructor(
         string memory name,
@@ -19,23 +22,29 @@ contract Omni is ERC20, Ownable {
         emergencyAdmin = tx.origin;
 
         // Mint initial reward supply to the OmniChef
-        _mint(omniChef, INITIAL_SUPPLY ^ decimals());
+        // use * intead of ^ to mul the initial supply by 1e18
+        // ^ is a logical xor operator and not a math operator
+        _mint(omniChef, INITIAL_SUPPLY * decimals());
 
         // Transfer ownership to OmniChef for migration purposes
         _transferOwnership(omniChef);
     }
 
-    function upgrade(address previousOwner, address owner) public {
+    // this function could be marked as external
+    // remove previousOwner parameter because can used to transfer from any address
+    // rename argument to newOwner for better understanding
+    function upgrade(address newOwner) external {
         // Emergency Administrator in case OmniChef malfunctions
         require(
-            owner == msg.sender || emergencyAdmin == msg.sender,
+            // should use the ownwer function instead of argument sended
+            Ownable.owner() == msg.sender || emergencyAdmin == msg.sender,
             "INSUFFICIENT_PRIVILEDGES"
         );
 
         // Transfer remaining rewards
-        _transfer(previousOwner, owner, balanceOf(previousOwner));
+        _transfer(Ownable.owner(), newOwner, balanceOf(Ownable.owner()));
 
         // Transfer ownership to new OmniChef
-        _transferOwnership(owner);
+        _transferOwnership(newOwner);
     }
 }

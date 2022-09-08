@@ -29,6 +29,8 @@ library SafeArithmetics {
         } else if (op == Operation.MUL) {
             uint256 c = a;
             a *= b;
+            // check to avoid an error by Mul by 0
+            if (a == 0 || b == 0) return 0;
             require(safe(a, Operation.DIV, b) == c);
         } else if (op == Operation.DIV) {
             require(b != 0);
