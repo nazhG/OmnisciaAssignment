@@ -57,6 +57,7 @@ contract OmniChef is OmniCompoundStrategy, Ownable {
     function withdraw(uint256 value) external returns (uint256 amount) {
         require(stakes[msg.sender] >= value, "INSUFFICIENT_STAKE");
 
+        // in case the deposit has not been called, this division will give 1 and will be transferred
         amount = stakes[msg.sender]
             .safe(SafeArithmetics.Operation.MUL, balance())
             .safe(SafeArithmetics.Operation.DIV, totalStakes);
