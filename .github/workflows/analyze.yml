@@ -1,0 +1,14 @@
+# Run Slither
+name: Slither Analysis
+# Only on pull request to master branch
+on:
+  pull_request:
+    branches: [ master ]
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: crytic/slither-action@v0.2.0
+        with:
+          target: 'contracts/'
