@@ -13,7 +13,7 @@ jobs:
         uses: luisfontes19/slither-static-analysis-action@v0.3.2
         with:
           slither-version: '0.6.13'
-          run-npm-install: true
+          run-npm-install: false
           high-threshold: 1
           medium-threshold: 1
           low-threshold: 1
